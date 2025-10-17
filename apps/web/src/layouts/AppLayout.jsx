@@ -5,7 +5,7 @@ function AppLayout() {
   const [open, setOpen] = useState(false);
   const [profileOpen, setProfileOpen] = useState(false);
 
-  const userName = localStorage.getItem("name") || "User";
+  const userName = sessionStorage.getItem("username") || "User";
   const department = localStorage.getItem("department") || "";
   const initial = userName.charAt(0).toUpperCase();
 
@@ -33,6 +33,9 @@ function AppLayout() {
             </Link>
             <Link to="/profile" onClick={() => setOpen(false)}>
               Profile
+            </Link>
+            <Link to="/CreateUser" onClick={() => setOpen(false)}>
+              Create User
             </Link>
           </nav>
         </div>

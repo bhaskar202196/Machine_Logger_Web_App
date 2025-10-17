@@ -35,8 +35,8 @@ function Login() {
       if (data.success) {
         // ✅ Use sessionStorage instead of localStorage
         sessionStorage.setItem("userId", user_id);
-        sessionStorage.setItem("username", data.username || "User");
-        sessionStorage.setItem("department", data.department || "");
+        sessionStorage.setItem("username", data.data.username || "User");
+        sessionStorage.setItem("department", data.data.department || "");
 
         console.log("Session stored:", {
           userId: sessionStorage.getItem("userId"),

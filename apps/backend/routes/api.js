@@ -126,8 +126,8 @@ router.post("/stop", async (req, res) => {
 // ✅ Custom Stop
 router.post("/customStop", async (req, res) => {
   try {
-    const { machine, userId, customEnd } = req.body;
-    if (!machine || !userId || !customEnd)
+    const { machine, userId, duration } = req.body;
+    if (!machine || !userId || !duration)
       return jsonResponse(res, {
         success: false,
         message: "Missing parameters",
@@ -147,10 +147,6 @@ router.post("/customStop", async (req, res) => {
         success: false,
         message: "No matching start log found",
       });
-
-    const startTime = new Date(rows[0].start_time);
-    const endTime = new Date(customEnd);
-    const duration = ((endTime - startTime) / 1000 / 60).toFixed(2);
 
     const { error } = await supabase
       .from("machine_logs")

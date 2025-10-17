@@ -6,6 +6,7 @@ import Dashboard from "./pages/Dashboard";
 import MachineLogs from "./pages/MachineLogs";
 import AppLayout from "./layouts/AppLayout";
 import Profile from "./pages/Profile";
+import CreateUser from "./pages/CreateUser";
 
 function App() {
   const [isLoggedIn, setIsLoggedIn] = useState(
@@ -63,6 +64,7 @@ function App() {
         <Route path="dashboard" element={<Dashboard />} />
         <Route path="dashboard/logs" element={<MachineLogs />} />
         <Route path="profile" element={<Profile currentUser={currentUser} />} />
+        <Route path="/createuser" element={<CreateUser />} />
 
         {/* Redirect "/" to /logger when logged in */}
         <Route index element={<Navigate to="/logger" replace />} />

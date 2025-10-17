@@ -57,9 +57,7 @@ function RunLogger({ userId }) {
 
     setLoadingMachines(true);
 
-    const url = `${API_URL}?action=machines&email=${encodeURIComponent(
-      userId
-    )}`;
+    const url = `${API_URL}/api/machines?email=${encodeURIComponent(userId)}`;
     console.log("[RunLogger] Fetching machines from:", url);
 
     fetch(url)
@@ -101,9 +99,9 @@ function RunLogger({ userId }) {
     setRunInfo({ machine: selected, start: now, end: null, duration: null });
 
     try {
-      const res = await fetch(API_URL, {
+      const res = await fetch(API_URL + "/api/start", {
         method: "POST",
-        headers: { "Content-Type": "text/plain" },
+        headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ action: "start", machine: selected, userId }),
       });
       const data = await res.json();
@@ -131,22 +129,44 @@ function RunLogger({ userId }) {
     setLoading(true);
     try {
       const now = new Date();
-      const res = await fetch(API_URL, {
+      const res = await fetch(API_URL + "/api/stop", {
         method: "POST",
-        headers: { "Content-Type": "text/plain" },
+        headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ action: "stop", machine: selected, userId }),
       });
       const data = await res.json();
 
       if (data.success) {
         const startTime = runInfo?.start ? new Date(runInfo.start) : now;
-        const durationMins = Math.max(0, (now - startTime) / 60000).toFixed(2);
+        const diffMs = Math.max(0, now - startTime);
+        const totalSeconds = Math.floor(diffMs / 1000);
+        const hours = Math.floor(totalSeconds / 3600);
+        const minutes = Math.floor((totalSeconds % 3600) / 60);
+        const seconds = totalSeconds % 60;
+
+        const formattedDuration = [
+          hours.toString().padStart(2, "0"),
+          minutes.toString().padStart(2, "0"),
+          seconds.toString().padStart(2, "0"),
+        ].join(":");
 
         setRunInfo((prev) => ({
           ...(prev || { machine: selected, start: startTime }),
           end: now,
-          duration: `${durationMins}`,
+          duration: formattedDuration,
         }));
+
+        // Send duration to backend
+        await fetch(API_URL, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            action: "stop",
+            machine: selected,
+            userId,
+            duration: formattedDuration, // ✅ send hh:mm:ss to backend
+          }),
+        });
 
         setStartDisabled(false);
         showToast("🛑 Machine Stopped");
@@ -188,9 +208,9 @@ function RunLogger({ userId }) {
       .replace(",", "");
 
     try {
-      const res = await fetch(API_URL, {
+      const res = await fetch(API_URL + "/api/customStop", {
         method: "POST",
-        headers: { "Content-Type": "text/plain" },
+        headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           action: "customStop",
           machine: selected,

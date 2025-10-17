@@ -18,7 +18,6 @@ const Profile = ({ currentUser }) => {
 
   const handleSave = async () => {
     const body = {
-      action: "updateuser",
       userId: currentUser.userId, // existing userId
       newUserId: formData.userId,
       username: formData.username,
@@ -28,7 +27,7 @@ const Profile = ({ currentUser }) => {
     console.log("Sending updateUser request:", body);
 
     try {
-      const res = await fetch(API_URL, {
+      const res = await fetch(API_URL + "/api/updateuser", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -47,7 +46,6 @@ const Profile = ({ currentUser }) => {
 
   const handlePasswordUpdate = async () => {
     const body = {
-      action: "updatepassword",
       userId: currentUser.userId,
       newPassword,
     };
@@ -55,7 +53,7 @@ const Profile = ({ currentUser }) => {
     console.log("Sending updatePassword request:", body);
 
     try {
-      const res = await fetch(API_URL, {
+      const res = await fetch(API_URL + "/api/updatepassword", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(body),

@@ -6,6 +6,7 @@ import supabase from "../db/index.js";
 import cors from "cors";
 import apiroutes from "../routes/api.js";
 import dashboardroutes from "../routes/dashboard.js";
+import userrouter from "../routes/createuser.route.js";
 
 const app = express();
 const corsoptions = {
@@ -19,6 +20,7 @@ app.use(cors(corsoptions));
 app.use("/api", router);
 app.use("/api", apiroutes);
 app.use("/api", dashboardroutes);
+app.use("/api/user", userrouter);
 
 const PORT = 3000;
 
