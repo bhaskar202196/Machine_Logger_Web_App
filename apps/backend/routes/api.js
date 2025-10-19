@@ -105,20 +105,39 @@ router.post("/stop", async (req, res) => {
 
     const now = new Date();
     const startTime = new Date(rows[0].start_time);
-    const durationMinutes = ((now - startTime) / 1000 / 60).toFixed(2);
+    const diffMs = Math.max(0, now - startTime);
 
-    await supabase
+    // ✅ convert to hh:mm:ss
+    const totalSeconds = Math.floor(diffMs / 1000);
+    const hours = Math.floor(totalSeconds / 3600);
+    const minutes = Math.floor((totalSeconds % 3600) / 60);
+    const seconds = totalSeconds % 60;
+    const formattedDuration = [
+      hours.toString().padStart(2, "0"),
+      minutes.toString().padStart(2, "0"),
+      seconds.toString().padStart(2, "0"),
+    ].join(":");
+
+    // update the log record
+    const { error: updateError } = await supabase
       .from("machine_logs")
       .update({
-        end_time: now,
-        total_run_time: durationMinutes,
+        end_time: now.toISOString(),
+        total_run_time: formattedDuration, // ✅ hh:mm:ss
       })
       .eq("timestamp", rows[0].timestamp)
       .eq("machine_name", rows[0].machine_name)
       .eq("user_id", rows[0].user_id);
 
-    return jsonResponse(res, { success: true });
+    if (updateError) throw updateError;
+
+    return jsonResponse(res, {
+      success: true,
+      duration: formattedDuration,
+      message: "Machine stopped successfully",
+    });
   } catch (err) {
+    console.error("❌ Stop error:", err);
     return jsonResponse(res, { success: false, error: err.message });
   }
 });
@@ -133,7 +152,7 @@ router.post("/customStop", async (req, res) => {
         message: "Missing parameters",
       });
 
-    const { data: rows } = await supabase
+    const { data: rows, error: selectError } = await supabase
       .from("machine_logs")
       .select("*")
       .is("end_time", null)
@@ -142,50 +161,39 @@ router.post("/customStop", async (req, res) => {
       .order("start_time", { ascending: false })
       .limit(1);
 
+    if (selectError) throw selectError;
     if (!rows || rows.length === 0)
       return jsonResponse(res, {
         success: false,
         message: "No matching start log found",
       });
 
-    const { error } = await supabase
+    // ✅ Calculate end time and ensure duration formatted
+    const startTime = new Date(rows[0].start_time);
+    const endTime = new Date(); // Or you can parse customEnd if passed in body
+    const formattedDuration = duration.includes(":")
+      ? duration // already formatted
+      : duration.toString(); // fallback
+
+    const { error: updateError } = await supabase
       .from("machine_logs")
       .update({
-        end_time: endTime,
-        total_run_time: duration,
+        end_time: endTime.toISOString(),
+        total_run_time: formattedDuration,
       })
       .eq("timestamp", rows[0].timestamp)
       .eq("machine_name", rows[0].machine_name)
       .eq("user_id", rows[0].user_id);
 
-    if (error) throw error;
-    return jsonResponse(res, { success: true });
-  } catch (err) {
-    return jsonResponse(res, { success: false, error: err.message });
-  }
-});
+    if (updateError) throw updateError;
 
-// ✅ Update user
-router.post("/updateuser", async (req, res) => {
-  try {
-    const { userId, newUserId, username, department } = req.body;
-
-    const updates = {};
-    if (newUserId) updates.user_id = newUserId;
-    if (username) updates.username = username;
-    if (department) updates.department = department;
-
-    const { error } = await supabase
-      .from("user_map")
-      .update(updates)
-      .eq("user_id", userId);
-
-    if (error) throw error;
     return jsonResponse(res, {
       success: true,
-      message: "User updated successfully",
+      message: "Custom stop logged successfully",
+      duration: formattedDuration,
     });
   } catch (err) {
+    console.error("❌ Custom stop error:", err);
     return jsonResponse(res, { success: false, error: err.message });
   }
 });

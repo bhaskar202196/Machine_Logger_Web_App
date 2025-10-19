@@ -185,27 +185,30 @@ function RunLogger({ userId }) {
   };
 
   const handleCustomSubmit = async () => {
-    if (!selected) return showToast("⚠️ Select a machine first");
+    if (!selected) return showToast("⚠ Select a machine first");
 
     const now = new Date();
+
+    // ✅ Calculate total minutes from inputs
     const totalMinutes =
       Number(days) * 1440 + Number(hours) * 60 + Number(minutes);
 
-    if (Number.isNaN(totalMinutes) || totalMinutes < 0) {
-      return showToast("⚠️ Invalid custom duration");
+    if (Number.isNaN(totalMinutes) || totalMinutes <= 0) {
+      return showToast("⚠ Invalid custom duration");
     }
 
+    // ✅ Convert minutes to hh:mm:ss
+    const totalSeconds = totalMinutes * 60;
+    const hh = Math.floor(totalSeconds / 3600)
+      .toString()
+      .padStart(2, "0");
+    const mm = Math.floor((totalSeconds % 3600) / 60)
+      .toString()
+      .padStart(2, "0");
+    const ss = (totalSeconds % 60).toString().padStart(2, "0");
+    const formattedDuration = `${hh}:${mm}:${ss}`;
+
     const customEnd = new Date(now.getTime() + totalMinutes * 60000);
-    const customEndStr = customEnd
-      .toLocaleString("en-GB", {
-        day: "2-digit",
-        month: "2-digit",
-        year: "numeric",
-        hour: "2-digit",
-        minute: "2-digit",
-        second: "2-digit",
-      })
-      .replace(",", "");
 
     try {
       const res = await fetch(API_URL + "/api/customStop", {
@@ -215,9 +218,10 @@ function RunLogger({ userId }) {
           action: "customStop",
           machine: selected,
           userId,
-          customEnd: customEndStr,
+          duration: formattedDuration, // ✅ now correct
         }),
       });
+
       const data = await res.json();
 
       if (data.success) {
@@ -225,7 +229,7 @@ function RunLogger({ userId }) {
           machine: selected,
           start: now,
           end: customEnd,
-          duration: `${Number(days)}d ${Number(hours)}h ${Number(minutes)}m`,
+          duration: formattedDuration,
         });
         setStartDisabled(false);
         showToast("✅ Custom End Time Logged");
