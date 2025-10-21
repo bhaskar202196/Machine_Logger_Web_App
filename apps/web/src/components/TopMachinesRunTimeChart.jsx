@@ -7,13 +7,13 @@ import {
   Tooltip,
   CartesianGrid,
   ResponsiveContainer,
+  Legend,
 } from "recharts";
 import { useNavigate } from "react-router-dom";
 
-// ✅ New backend endpoint
 const API_URL = "http://localhost:3000/api/topmachinesruntime";
 
-// Utility: shorten long machine names for Y-axis labels
+// Utility to shorten long labels
 const truncateLabel = (label, maxLen = 22) => {
   if (!label) return "";
   return label.length > maxLen ? label.slice(0, maxLen) + "..." : label;
@@ -35,7 +35,8 @@ const TopMachinesRuntimeChart = () => {
           const formatted = json.data.map((item) => ({
             machine: item.machine,
             department: item.department,
-            runTime: parseFloat(item.runTime), // numeric minutes
+            runTime: parseFloat(item.runTime), // ✅ numeric runtime
+            fullName: item.machine, // ✅ for tooltip
           }));
           setData(formatted);
         } else {
@@ -51,7 +52,20 @@ const TopMachinesRuntimeChart = () => {
     fetchData();
   }, []);
 
-  // Navigate to full logs page
+  const CustomTooltip = ({ active, payload }) => {
+    if (active && payload && payload.length) {
+      const { fullName, runTime, department } = payload[0].payload;
+      return (
+        <div className="bg-white border p-2 rounded shadow text-sm">
+          <p className="font-semibold">{fullName}</p>
+          <p>Run Time: {runTime} mins</p>
+          {department && <p>Department: {department}</p>}
+        </div>
+      );
+    }
+    return null;
+  };
+
   const handleViewMore = () => {
     navigate("/dashboard/logs");
   };
@@ -82,10 +96,8 @@ const TopMachinesRuntimeChart = () => {
             <XAxis
               type="number"
               label={{
-                value: "Run Time (mins)",
                 position: "insideBottom",
-                offset: 0,
-                style: { fontSize: 12 },
+                offset: -5,
               }}
             />
             <YAxis
@@ -95,13 +107,10 @@ const TopMachinesRuntimeChart = () => {
               tickFormatter={(value) => truncateLabel(value)}
               tick={{ fontSize: 12 }}
             />
-            <Tooltip
-              formatter={(value, name, props) => [
-                `${value} mins`,
-                `${props.payload.machine} (${props.payload.department})`,
-              ]}
-            />
-            <Bar dataKey="runTime" fill="#FF8C42" name="Run Time" />
+            <Tooltip content={<CustomTooltip />} />
+            <Legend />
+            {/* ✅ Corrected dataKey */}
+            <Bar dataKey="runTime" fill="#FF8C42" name="Run Time (mins)" />
           </BarChart>
         </ResponsiveContainer>
       )}

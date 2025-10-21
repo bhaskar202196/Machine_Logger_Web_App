@@ -88,13 +88,12 @@ const TopMachinesChart = () => {
           <BarChart
             data={data}
             layout="vertical"
-            margin={{ top: 10, right: 40, left: 100, bottom: 10 }}
+            margin={{ top: 10, right: 20, left: 20, bottom: 40 }}
           >
             <CartesianGrid strokeDasharray="3 3" />
             <XAxis
               type="number"
               label={{
-                value: "Run Count",
                 position: "insideBottom",
                 offset: -5,
               }}
