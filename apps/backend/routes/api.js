@@ -1,5 +1,6 @@
 import express from "express";
 import supabase from "../db/index.js";
+import bcrypt from "bcryptjs";
 
 const router = express.Router();
 
@@ -202,12 +203,25 @@ router.post("/customStop", async (req, res) => {
 router.post("/updatepassword", async (req, res) => {
   try {
     const { userId, newPassword } = req.body;
+    if (!userId || !newPassword) {
+      return jsonResponse(res, {
+        success: false,
+        error: "User ID and new password are required",
+      });
+    }
+
+    // Hash the new password
+    const salt = await bcrypt.genSalt(10);
+    const hashedPassword = await bcrypt.hash(newPassword, salt);
+
+    // Update password in Supabase
     const { error } = await supabase
       .from("user_map")
-      .update({ password: newPassword })
+      .update({ password: hashedPassword })
       .eq("user_id", userId);
 
     if (error) throw error;
+
     return jsonResponse(res, {
       success: true,
       message: "Password updated successfully",

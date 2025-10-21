@@ -2,6 +2,8 @@
 import express from "express";
 import supabase from "../db/index.js";
 import jsonResponse from "../utils/response.js";
+import bcrypt from "bcryptjs";
+
 const router = express.Router();
 
 router.post("/login", async (req, res) => {
@@ -27,13 +29,13 @@ router.post("/login", async (req, res) => {
       return res.status(401).json(jsonResponse(false, "Invalid credentials"));
     }
 
-    // TODO: If passwords are hashed, verify with bcrypt.compare(password, data.password)
-    const isMatch = password === data.password; // TEMP ONLY — replace with bcrypt
+    // ✅ Compare entered password with stored hash
+    const isMatch = await bcrypt.compare(password, data.password);
     if (!isMatch) {
       return res.status(401).json(jsonResponse(false, "Invalid credentials"));
     }
 
-    // Issue session/JWT if needed; for now return user profile
+    // If password is correct, return safe user info (no password)
     const safeUser = {
       user_id: data.user_id,
       username: data.username,

@@ -1,7 +1,9 @@
 import express from "express";
 import dotenv from "dotenv";
-dotenv.config();
+import bcrypt from "bcryptjs";
 import supabase from "../db/index.js";
+
+dotenv.config();
 
 const userrouter = express.Router();
 
@@ -15,13 +17,24 @@ userrouter.post("/create", async (req, res) => {
       .json({ error: "Username, User_ID and Password are required." });
   }
 
-  const { data, error } = await supabase
-    .from("user_map")
-    .insert([{ user_id, password, username, department }])
-    .select();
+  try {
+    // Generate salt and hash password
+    const salt = await bcrypt.genSalt(10);
+    const hashedPassword = await bcrypt.hash(password, salt);
 
-  if (error) return res.status(500).json({ error: error.message });
-  res.status(201).json({ message: "User created successfully!", data });
+    // Insert into Supabase
+    const { data, error } = await supabase
+      .from("user_map")
+      .insert([{ user_id, username, password: hashedPassword, department }])
+      .select();
+
+    if (error) return res.status(500).json({ error: error.message });
+
+    res.status(201).json({ message: "User created successfully!", data });
+  } catch (err) {
+    console.error("Error creating user:", err);
+    res.status(500).json({ error: "Internal server error" });
+  }
 });
 
 export default userrouter;

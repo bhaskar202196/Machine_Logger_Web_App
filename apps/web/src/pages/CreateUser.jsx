@@ -37,7 +37,11 @@ function CreateUser() {
           department: "",
         });
       } else {
-        setStatus(`❌ Error: ${data.error}`);
+        let message = "";
+        if (data.error.includes("user_map_user_id_key")) {
+          message = "User ID Already Exists";
+        }
+        setStatus(`❌ Error: ${message}`);
       }
     } catch (err) {
       setStatus("⚠️ Could not connect to server.");
