@@ -7,11 +7,12 @@ import cors from "cors";
 import apiroutes from "../routes/api.js";
 import dashboardroutes from "../routes/dashboard.js";
 import userrouter from "../routes/createuser.route.js";
+import sopRoutes from "../routes/sop.route.js";
 
 const app = express();
 const corsoptions = {
   origin: ["http://localhost:3001"],
-  methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
+  methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS", "PATCH"],
   allowedHeaders: ["Content-Type", "Authorization"],
   credentials: true,
 };
@@ -21,6 +22,7 @@ app.use("/api", router);
 app.use("/api", apiroutes);
 app.use("/api", dashboardroutes);
 app.use("/api/user", userrouter);
+app.use("/api/sops", sopRoutes);
 
 const PORT = 3000;
 

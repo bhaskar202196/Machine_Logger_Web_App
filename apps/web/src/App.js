@@ -7,6 +7,7 @@ import MachineLogs from "./pages/MachineLogs";
 import AppLayout from "./layouts/AppLayout";
 import Profile from "./pages/Profile";
 import CreateUser from "./pages/CreateUser";
+import SopManager from "./pages/SopManager";
 
 function App() {
   const [isLoggedIn, setIsLoggedIn] = useState(
@@ -65,6 +66,7 @@ function App() {
         <Route path="dashboard/logs" element={<MachineLogs />} />
         <Route path="profile" element={<Profile currentUser={currentUser} />} />
         <Route path="/createuser" element={<CreateUser />} />
+        <Route path="/SopManager" element={<SopManager userId={userId} />} />
 
         {/* Redirect "/" to /logger when logged in */}
         <Route index element={<Navigate to="/logger" replace />} />

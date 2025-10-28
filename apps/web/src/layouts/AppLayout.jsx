@@ -37,6 +37,9 @@ function AppLayout() {
             <Link to="/CreateUser" onClick={() => setOpen(false)}>
               Create User
             </Link>
+            <Link to="/SopManager" onClick={() => setOpen(false)}>
+              SOP Files
+            </Link>
           </nav>
         </div>
 

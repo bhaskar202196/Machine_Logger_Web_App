@@ -10,7 +10,7 @@ const jsonResponse = (res, obj) => res.json(obj);
 // ✅ Get machines accessible by a user
 router.get("/machines", async (req, res) => {
   try {
-    const { email } = req.query;
+    const { email, includeDept } = req.query;
     if (!email)
       return jsonResponse(res, { success: false, message: "Missing email" });
 
@@ -31,7 +31,11 @@ router.get("/machines", async (req, res) => {
 
     let list = [];
     if (deptRaw.toUpperCase() === "ALL") {
-      list = allMachines.map((m) => m.machine_name);
+      list = allMachines.map((m) =>
+        includeDept === "true"
+          ? { machine_name: m.machine_name, department: m.department }
+          : m.machine_name
+      );
     } else {
       const allowedDepts = deptRaw
         .split(",")
@@ -39,7 +43,11 @@ router.get("/machines", async (req, res) => {
         .filter(Boolean);
       list = allMachines
         .filter((m) => allowedDepts.includes(m.department?.toUpperCase()))
-        .map((m) => m.machine_name);
+        .map((m) =>
+          includeDepat === "true"
+            ? { machine_name: m.machine_name, department: m.department }
+            : m.machine_name
+        );
     }
 
     return jsonResponse(res, { success: true, data: { list } });
