@@ -8,6 +8,7 @@ import AppLayout from "./layouts/AppLayout";
 import Profile from "./pages/Profile";
 import CreateUser from "./pages/CreateUser";
 import SopManager from "./pages/SopManager";
+import EditSop from "./pages/EditSOP.jsx";
 
 function App() {
   const [isLoggedIn, setIsLoggedIn] = useState(
@@ -67,6 +68,7 @@ function App() {
         <Route path="profile" element={<Profile currentUser={currentUser} />} />
         <Route path="/createuser" element={<CreateUser />} />
         <Route path="/SopManager" element={<SopManager userId={userId} />} />
+        <Route path="/sops/edit/:id" element={<EditSop userId={userId} />} />
 
         {/* Redirect "/" to /logger when logged in */}
         <Route index element={<Navigate to="/logger" replace />} />

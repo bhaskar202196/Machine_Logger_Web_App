@@ -2,6 +2,7 @@
 import React, { useState, useEffect, useCallback } from "react";
 import axios from "axios";
 import { saveAs } from "file-saver";
+import { useNavigate } from "react-router-dom";
 
 const BASE_URL = "http://localhost:3000/api";
 const SOP_URL = `${BASE_URL}/sops`;
@@ -9,6 +10,7 @@ const SOP_URL = `${BASE_URL}/sops`;
 function SopManager({ userId }) {
   console.log("[SopManager] userId received from App.js:", userId);
 
+  const navigate = useNavigate();
   const [machines, setMachines] = useState([]);
   const [department, setDepartment] = useState("");
   const [selectedMachine, setSelectedMachine] = useState("");
@@ -64,24 +66,50 @@ function SopManager({ userId }) {
 
   useEffect(() => {
     fetchSops();
+  }, [fetchSops]);
+
+  useEffect(() => {
     if (errorexists) {
       const timer = setTimeout(() => {
         seterrorexists(false);
       }, 5000);
       return () => clearTimeout(timer);
     }
+  }, [errorexists]);
+
+  useEffect(() => {
     if (successmessage) {
       const timer = setTimeout(() => {
         setsuccessmessage(false);
       }, 5000);
       return () => clearTimeout(timer);
     }
-  }, [fetchSops, errorexists, successmessage]);
+  }, [successmessage]);
 
   // ✅ Upload Handler
   const handleUpload = async () => {
     if (!file || !selectedMachine) {
       seterrorexists(true);
+      return;
+    }
+
+    const allowedExts = ["pdf", "docx"];
+    const ext = file.name.split(".").pop().toLowerCase();
+
+    if (!allowedExts.includes(ext)) {
+      alert(
+        `❌ Invalid file type. Only ${allowedExts.join(
+          ", "
+        )} files are allowed.`
+      );
+      setFile(null);
+      return;
+    }
+
+    const maxSize = 10 * 1024 * 1024; // 10 MB
+    if (file.size > maxSize) {
+      alert("❌ File too large. Maximum allowed size is 10 MB.");
+      setFile(null);
       return;
     }
     setLoading(true);
@@ -194,13 +222,18 @@ function SopManager({ userId }) {
 
   // Handle Floating Buttons and Handlers
   const downloadSelected = React.useCallback(() => {
-    if (selectedSop?.previewUrl) return;
+    if (!selectedSop?.previewUrl) return;
     saveAs(selectedSop.previewUrl, selectedSop.filename);
   }, [selectedSop]);
 
-  const handleEdit = () => {
-    // Navigate or open new page for editing — we’ll add this next phase
-    window.open(`/sop/edit/${selectedSop.id}`, "_blank");
+  const handleEdit = (sop) => {
+    if (!sop?.id) {
+      console.error("[handleEdit] Invalid SOP object:", sop);
+      return; // exit only if invalid
+    }
+
+    console.log("[SopManager] Navigating to edit page for:", sop.id);
+    navigate(`/sops/edit/${sop.id}`);
   };
 
   const handleReplace = () => {
@@ -366,7 +399,10 @@ function SopManager({ userId }) {
               Download
             </button>
             <button
-              onClick={handleEdit}
+              onClick={(e) => {
+                e.stopPropagation();
+                handleEdit(selectedSop); // pass the full sop object
+              }}
               className="bg-yellow-500 hover:bg-yellow-600 px-4 py-2 rounded shadow-md"
             >
               Edit

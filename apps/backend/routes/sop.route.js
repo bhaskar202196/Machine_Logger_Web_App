@@ -83,6 +83,7 @@ router.post("/commit", async (req, res) => {
       fileId: z.string().uuid(),
     });
     const { fileId } = schema.parse(req.body);
+    console.log("[commit] fileId received:", fileId, typeof fileId);
 
     // Verify record exists
     const { data: fileData, error } = await supabase
@@ -92,6 +93,7 @@ router.post("/commit", async (req, res) => {
       .single();
     if (error || !fileData)
       throw new Error("File record not found or already committed");
+    console.error("[commit error]", err);
 
     // ✅ Try downloading file to verify it's valid
     const { data: fileBlob, error: dlErr } = await supabase.storage
